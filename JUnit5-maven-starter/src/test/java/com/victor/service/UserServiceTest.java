@@ -15,7 +15,9 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class UserServiceTest {
@@ -65,6 +67,26 @@ public class UserServiceTest {
         maybeUser.ifPresent(user -> assertThat(user).isEqualTo(IVAN));
 //        assertTrue(maybeUser.isPresent());
 //        maybeUser.ifPresent(user -> assertEquals(IVAN,user));
+
+    }
+
+    @Test
+        //    @org.junit.Test(expected = IllegalArgumentException.class)
+    void throwExceptionIfUsernameOrPasswordIsNull() {
+//        try{
+//            userService.login(null, "dummy");
+//            fail("login should throw exception on null username");
+//        }catch (IllegalArgumentException ex){
+//            assertTrue(true);
+//        }
+
+        assertAll(
+                () -> {
+                    var exception = assertThrows(IllegalArgumentException.class, () -> userService.login(null, "dummy"));
+                    assertThat(exception.getMessage()).isEqualTo("username or password is null");
+                },
+                () -> assertThrows(IllegalArgumentException.class, () -> userService.login("dummy", null))
+        );
 
     }
 
