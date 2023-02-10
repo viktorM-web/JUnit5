@@ -1,8 +1,12 @@
 package com.victor.service;
 
+import com.victor.TestBase;
 import com.victor.dto.User;
-import com.victor.paramresolver.UserServiceParamResolver;
-import lombok.Value;
+import com.victor.extension.ConditionalExtension;
+import com.victor.extension.GlobalExtension;
+import com.victor.extension.PostProcessingExtension;
+import com.victor.extension.ThrowableExtension;
+import com.victor.extension.UserServiceParamResolver;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.collection.IsMapContaining;
 import org.junit.jupiter.api.AfterAll;
@@ -23,16 +27,9 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.ArgumentsSource;
-import org.junit.jupiter.params.provider.CsvFileSource;
-import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.EmptySource;
-import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.NullAndEmptySource;
-import org.junit.jupiter.params.provider.NullSource;
-import org.junit.jupiter.params.provider.ValueSource;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
@@ -50,8 +47,14 @@ import static org.junit.jupiter.api.RepeatedTest.LONG_DISPLAY_NAME;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 //@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestMethodOrder(MethodOrderer.DisplayName.class)
-@ExtendWith({UserServiceParamResolver.class})
-class UserServiceTest {
+@ExtendWith({
+        UserServiceParamResolver.class,
+        PostProcessingExtension.class,
+        ConditionalExtension.class,
+        ThrowableExtension.class
+//        GlobalExtension.class
+})
+class UserServiceTest extends TestBase {
 
     private static final User IVAN = User.of(1, "Ivan", "123");
     private static final User PETR = User.of(2, "Petr", "111");
@@ -75,7 +78,10 @@ class UserServiceTest {
 
     @Test
 //    @Order(1)
-    void usersEmptyIfNoUserAdded() {
+    void usersEmptyIfNoUserAdded() throws RuntimeException {
+        if(true){
+            throw new RuntimeException();
+        }
         System.out.println("Test 1: " + this);
         var users = userService.getAll();
 
@@ -148,6 +154,7 @@ class UserServiceTest {
         }
 
         @Test
+        @Disabled
         void checkLoginFunctionalityPerformance() {
             var result = assertTimeout(Duration.ofMillis(200L), ()->{
                 Thread.sleep(300L);

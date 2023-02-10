@@ -1,4 +1,4 @@
-package com.victor.paramresolver;
+package com.victor.extension;
 
 import com.victor.service.UserService;
 import org.junit.jupiter.api.extension.ExtensionContext;
