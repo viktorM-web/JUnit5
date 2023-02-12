@@ -30,7 +30,11 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -53,6 +57,7 @@ import static org.junit.jupiter.api.RepeatedTest.LONG_DISPLAY_NAME;
 @ExtendWith({
         UserServiceParamResolver.class,
         PostProcessingExtension.class,
+        MockitoExtension.class
 //        ConditionalExtension.class,
 //        ThrowableExtension.class
 //        GlobalExtension.class
@@ -62,7 +67,11 @@ class UserServiceTest extends TestBase {
     private static final User IVAN = User.of(1, "Ivan", "123");
     private static final User PETR = User.of(2, "Petr", "111");
 
+    @Captor
+    private ArgumentCaptor<Integer> argumentCaptor;
+    @Mock
     private UserDao userDao;
+    @InjectMocks
     private UserService userService;
 
     UserServiceTest(TestInfo testInfo) {
@@ -77,8 +86,15 @@ class UserServiceTest extends TestBase {
     @BeforeEach
     void prepare() {
         System.out.println("Before each: " + this);
-        this.userDao = Mockito.spy(new UserDao());
-        this.userService = new UserService(userDao);
+//        this.userDao = Mockito.spy(new UserDao());
+//        this.userService = new UserService(userDao);
+    }
+
+    @Test
+    void throwExceptionIfDatabaseIsNotAvailable() {
+        Mockito.doThrow(RuntimeException.class).when(userDao).delete(IVAN.getId());
+
+        assertThrows(RuntimeException.class, ()->userService.delete(IVAN.getId()));
     }
 
     @Test
@@ -95,9 +111,9 @@ class UserServiceTest extends TestBase {
         System.out.println(userService.delete(IVAN.getId()));
         System.out.println(userService.delete(IVAN.getId()));
 
-        var integerArgumentCaptor = ArgumentCaptor.forClass(Integer.class);
-        Mockito.verify(userDao, Mockito.times(3)).delete(integerArgumentCaptor.capture());
-        assertThat(integerArgumentCaptor.getValue()).isEqualTo(25);
+//        var integerArgumentCaptor = ArgumentCaptor.forClass(Integer.class);
+        Mockito.verify(userDao, Mockito.times(3)).delete(argumentCaptor.capture());
+        assertThat(argumentCaptor.getValue()).isEqualTo(IVAN.getId());
 
 
         assertThat(deleteResult).isTrue();
