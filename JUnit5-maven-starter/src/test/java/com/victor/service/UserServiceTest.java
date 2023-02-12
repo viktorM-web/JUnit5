@@ -7,6 +7,7 @@ import com.victor.extension.GlobalExtension;
 import com.victor.extension.PostProcessingExtension;
 import com.victor.extension.ThrowableExtension;
 import com.victor.extension.UserServiceParamResolver;
+import com.victor.service.dao.UserDao;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.collection.IsMapContaining;
 import org.junit.jupiter.api.AfterAll;
@@ -28,6 +29,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -50,8 +52,8 @@ import static org.junit.jupiter.api.RepeatedTest.LONG_DISPLAY_NAME;
 @ExtendWith({
         UserServiceParamResolver.class,
         PostProcessingExtension.class,
-        ConditionalExtension.class,
-        ThrowableExtension.class
+//        ConditionalExtension.class,
+//        ThrowableExtension.class
 //        GlobalExtension.class
 })
 class UserServiceTest extends TestBase {
@@ -59,6 +61,7 @@ class UserServiceTest extends TestBase {
     private static final User IVAN = User.of(1, "Ivan", "123");
     private static final User PETR = User.of(2, "Petr", "111");
 
+    private UserDao userDao;
     private UserService userService;
 
     UserServiceTest(TestInfo testInfo) {
@@ -71,15 +74,33 @@ class UserServiceTest extends TestBase {
     }
 
     @BeforeEach
-    void prepare(UserService userService) {
+    void prepare() {
         System.out.println("Before each: " + this);
-        this.userService = userService;
+        this.userDao= Mockito.mock(UserDao.class);
+        this.userService = new UserService(userDao);
+    }
+
+    @Test
+    void shouldDeleteExistedUser() {
+        userService.add(IVAN);
+//        Mockito.doReturn(true).when(userDao).delete(IVAN.getId());
+//        Mockito.doReturn(true).when(userDao).delete(Mockito.any());
+
+        Mockito.when(userDao.delete(IVAN.getId()))
+                .thenReturn(true)
+                .thenReturn(false);
+
+        var deleteResult = userService.delete(IVAN.getId());
+        System.out.println(userService.delete(IVAN.getId()));
+        System.out.println(userService.delete(IVAN.getId()));
+
+        assertThat(deleteResult).isTrue();
     }
 
     @Test
 //    @Order(1)
     void usersEmptyIfNoUserAdded() throws RuntimeException {
-        if(true){
+        if (true) {
             throw new RuntimeException();
         }
         System.out.println("Test 1: " + this);
@@ -141,7 +162,7 @@ class UserServiceTest extends TestBase {
             assertTrue(maybeUser.isEmpty());
         }
 
-//        @Test
+        //        @Test
         @RepeatedTest(value = 5, name = LONG_DISPLAY_NAME)
         void loginSuccessIfUserExists(RepetitionInfo repetitionInfo) {
             userService.add(IVAN);
@@ -156,7 +177,7 @@ class UserServiceTest extends TestBase {
         @Test
         @Disabled
         void checkLoginFunctionalityPerformance() {
-            var result = assertTimeout(Duration.ofMillis(200L), ()->{
+            var result = assertTimeout(Duration.ofMillis(200L), () -> {
                 Thread.sleep(300L);
                 return userService.login("dummy", IVAN.getPassword());
             });
