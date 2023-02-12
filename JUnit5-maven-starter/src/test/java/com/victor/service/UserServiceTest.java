@@ -2,6 +2,7 @@ package com.victor.service;
 
 import com.victor.dto.User;
 import com.victor.paramresolver.UserServiceParamResolver;
+import lombok.Value;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.collection.IsMapContaining;
 import org.junit.jupiter.api.AfterAll;
@@ -17,9 +18,21 @@ import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.ArgumentsSource;
+import org.junit.jupiter.params.provider.CsvFileSource;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EmptySource;
+import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
@@ -154,5 +167,63 @@ class UserServiceTest {
 
             assertTrue(maybeUser.isEmpty());
         }
+
+        //        @ParameterizedTest
+////        @ArgumentsSource()
+//        @NullSource
+//        @EmptySource
+////        @NullAndEmptySource
+////        @ValueSource
+//        void loginParametrizedTest(String username) {
+//            userService.add(IVAN, PETR);
+//
+//            var maybeUser = userService.login(username, null);
+//        }
+//
+//        @ParameterizedTest
+////        @ArgumentsSource()
+////        @NullSource
+////        @EmptySource
+////        @NullAndEmptySource
+//        @ValueSource(strings = {
+//                "Ivan", "Petr"
+//        })
+////        @EnumSource
+//        void loginParametrizedTest(String username) {
+//            userService.add(IVAN, PETR);
+//
+//            var maybeUser = userService.login(username, null);
+//        }
+        @ParameterizedTest(name = "{arguments} test")
+        @MethodSource("com.victor.service.UserServiceTest#getArgumentsForLoginTest")
+        void loginParametrizedTest(String username, String password, Optional<User> user) {
+            userService.add(IVAN, PETR);
+
+            var maybeUser = userService.login(username, password);
+            assertThat(maybeUser).isEqualTo(user);
+        }
+
+//        @ParameterizedTest
+//        @CsvFileSource(resources = "/login-test-data.csv", delimiter = ',', numLinesToSkip = 1)
+////        @CsvSource({
+////                "Ivan,123",
+////                "Petr,111"
+////        })
+//        void loginParametrizedTest(String username, Integer password) {
+//            userService.add(IVAN, PETR);
+//
+//            var maybeUser = userService.login(username, null);
+//            assertThat(maybeUser).isEqualTo(null);
+//        }
+
+    }
+
+    static Stream<Arguments> getArgumentsForLoginTest() {
+        return Stream.of(
+                Arguments.of("Ivan", "123", Optional.of(IVAN)),
+                Arguments.of("Petr", "111", Optional.of(PETR)),
+                Arguments.of("Iva", "dummy", Optional.empty()),
+                Arguments.of("dummy", "123", Optional.empty())
+        );
     }
 }
