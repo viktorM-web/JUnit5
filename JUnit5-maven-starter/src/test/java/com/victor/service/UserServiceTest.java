@@ -1,9 +1,22 @@
 package com.victor.service;
 
 import com.victor.dto.User;
+import com.victor.paramresolver.UserServiceParamResolver;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.collection.IsMapContaining;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Map;
 import java.util.Optional;
@@ -18,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 //@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestMethodOrder(MethodOrderer.DisplayName.class)
+@ExtendWith({UserServiceParamResolver.class})
 class UserServiceTest {
 
     private static final User IVAN = User.of(1, "Ivan", "123");
@@ -25,15 +39,19 @@ class UserServiceTest {
 
     private UserService userService;
 
+    UserServiceTest(TestInfo testInfo) {
+        System.out.println();
+    }
+
     @BeforeAll
     void init() {
         System.out.println("Before all: " + this);
     }
 
     @BeforeEach
-    void prepare() {
+    void prepare(UserService userService) {
         System.out.println("Before each: " + this);
-        userService = new UserService();
+        this.userService = userService;
     }
 
     @Test
