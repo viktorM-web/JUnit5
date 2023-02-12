@@ -9,9 +9,12 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.RepetitionInfo;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
@@ -30,6 +33,7 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -38,7 +42,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTimeout;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.RepeatedTest.LONG_DISPLAY_NAME;
 
 @Tag("fast")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -120,6 +126,7 @@ class UserServiceTest {
     class LoginTest {
 
         @Test
+        @Disabled
         void loginFailIfPasswordIsNotCorrect() {
             userService.add(IVAN);
 
@@ -128,8 +135,9 @@ class UserServiceTest {
             assertTrue(maybeUser.isEmpty());
         }
 
-        @Test
-        void loginSuccessIfUserExists() {
+//        @Test
+        @RepeatedTest(value = 5, name = LONG_DISPLAY_NAME)
+        void loginSuccessIfUserExists(RepetitionInfo repetitionInfo) {
             userService.add(IVAN);
             Optional<User> maybeUser = userService.login(IVAN.getUserName(), IVAN.getPassword());
 
@@ -137,6 +145,14 @@ class UserServiceTest {
             maybeUser.ifPresent(user -> assertThat(user).isEqualTo(IVAN));
 //        assertTrue(maybeUser.isPresent());
 //        maybeUser.ifPresent(user -> assertEquals(IVAN,user));
+        }
+
+        @Test
+        void checkLoginFunctionalityPerformance() {
+            var result = assertTimeout(Duration.ofMillis(200L), ()->{
+                Thread.sleep(300L);
+                return userService.login("dummy", IVAN.getPassword());
+            });
         }
 
         @Test
