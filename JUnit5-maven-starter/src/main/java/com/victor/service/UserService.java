@@ -1,6 +1,7 @@
 package com.victor.service;
 
 import com.victor.dto.User;
+import com.victor.service.dao.UserDao;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,6 +15,15 @@ import static java.util.stream.Collectors.toMap;
 public class UserService {
 
     List<User> users = new ArrayList<>();
+    private final UserDao userDao;
+
+    public UserService(UserDao userDao) {
+        this.userDao = userDao;
+    }
+
+    public boolean delete(Integer userId) {
+        return userDao.delete(userId);
+    }
 
     public List<User> getAll() {
         return users;
@@ -24,7 +34,7 @@ public class UserService {
     }
 
     public Optional<User> login(String userName, String password) {
-        if(userName == null || password == null) {
+        if (userName == null || password == null) {
             throw new IllegalArgumentException("username or password is null");
         }
 
